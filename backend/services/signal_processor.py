@@ -13,11 +13,20 @@ logger = logging.getLogger(__name__)
 
 class SignalProcessor:
     def __init__(self):
-        self.redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+        self.redis_client = None
         self.risk_engine = RiskEngine()
         self.order_manager = OrderManager()
+        try:
+            if settings.REDIS_URL:
+                self.redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+        except Exception:
+            pass
 
     async def start(self):
+        if not self.redis_client:
+            logger.warning("Redis not available - signal processor disabled")
+            return
+        
         pubsub = self.redis_client.pubsub()
         await pubsub.subscribe("new_signal")
         logger.info("Signal processor subscribed to 'new_signal' channel")

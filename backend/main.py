@@ -33,16 +33,19 @@ async def startup_event():
     else:
         logging.info("No DATABASE_URL - running without database")
 
-    # Start the signal processor background task
-    processor = SignalProcessor()
-    asyncio.create_task(processor.start())
-
-    # Start the order monitor background task
-    monitor = OrderMonitor()
-    asyncio.create_task(monitor.start())
-
-    # Start the WS redis listener
-    asyncio.create_task(ws.manager.listen_to_redis())
+    # Start the signal processor background task (only if Redis available)
+    if app_settings.REDIS_URL:
+        processor = SignalProcessor()
+        asyncio.create_task(processor.start())
+    
+    # Start the order monitor background task (only if DB available)
+    if app_settings.DATABASE_URL:
+        monitor = OrderMonitor()
+        asyncio.create_task(monitor.start())
+    
+    # Start the WS redis listener (only if Redis available)
+    if app_settings.REDIS_URL:
+        asyncio.create_task(ws.manager.listen_to_redis())
     
     # Set Telegram webhook
     if app_settings.TELEGRAM_BOT_TOKEN:
