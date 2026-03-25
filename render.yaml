@@ -7,12 +7,16 @@ services:
       - key: MODE
         value: demo
       - key: BINANCE_TESTNET_API_KEY
-        sync: false
+        value: 5TJENk5wn8jxejDSkYDkQr6FK15ECYsto9QvFikkC6G8odHgU6bxI8drDMnxb30O
       - key: BINANCE_TESTNET_API_SECRET
-        sync: false
+        value: Msw4ifcV1eDsjAwWBK76eMYrV7Zun0eYe43OAXRxdBbjUm2LHnm23RWOFUIEcTDs
       - key: WEBHOOK_SECRET
-        sync: false
+        value: your_secret_token
+      - key: TELEGRAM_BOT_TOKEN
+        value: 8597560874:AAHdhWqLdAxYiPcpBS7q3j8f7ts0H-vCaQ0
+      - key: TELEGRAM_CHAT_ID
+        value: "1680895282"
       - key: DATABASE_URL
-        sync: false
+        value: ""
       - key: REDIS_URL
-        sync: false
+        value: ""

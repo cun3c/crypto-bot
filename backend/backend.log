@@ -1,85 +1,175 @@
-INFO:     Will watch for changes in these directories: ['/Users/mac/Desktop/tradingbot/crypto-algo-bot/backend']
-INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [81831] using StatReload
 /Users/mac/Desktop/tradingbot/crypto-algo-bot/backend/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
   warnings.warn(
-INFO:     Started server process [81833]
+INFO:     Started server process [85016]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-2026-03-25 02:50:20,886 - services.signal_processor - INFO - Signal processor subscribed to 'new_signal' channel
-INFO:     127.0.0.1:58850 - "WebSocket /ws" [accepted]
-2026-03-25 02:50:24,697 - routes.ws - INFO - Client connected. Active: 1
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2026-03-25 03:48:02,067 - services.signal_processor - INFO - Signal processor subscribed to 'new_signal' channel
+INFO:     127.0.0.1:62425 - "WebSocket /ws" [accepted]
+2026-03-25 03:48:05,139 - routes.ws - INFO - Client connected. Active: 1
 INFO:     connection open
-2026-03-25 02:50:25,372 - asyncio - ERROR - Task was destroyed but it is pending!
-task: <Task pending name='Task-5' coro=<SignalProcessor.start() running at /Users/mac/Desktop/tradingbot/crypto-algo-bot/backend/services/signal_processor.py:25> wait_for=<Future pending cb=[<TaskWakeupMethWrapper object at 0x1138ee070>()]>>
-2026-03-25 02:50:25,428 - asyncio - ERROR - Task exception was never retrieved
-future: <Task finished name='Task-27' coro=<<async_generator_athrow without __name__>()> exception=RuntimeError('aclose(): asynchronous generator is already running')>
+2026-03-25 03:48:06,314 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774406885354&signature=572a78c0a8b3897c5fc15b7992d860a20b935f7ee2aa3b4fefc9f4be67973181 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62427 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:48:08,411 - routes.webhook - INFO - Received signal: buy SOLUSDT from Test
+INFO:     127.0.0.1:62434 - "POST /webhook/tradingview HTTP/1.1" 200 OK
+2026-03-25 03:48:09,390 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774406888442&signature=3ea1c8f95d777e0169b4e071928908b8c5c0cc8e6feb70c2ec155dabd0bf650e "HTTP/1.1 200 OK"
+2026-03-25 03:48:09,643 - services.signal_processor - ERROR - Failed to execute order for signal 4: 'Signal' object has no attribute 'stop_loss'
+INFO:     127.0.0.1:62441 - "POST /admin/process-signals HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62449 - "GET /settings/ HTTP/1.1" 200 OK
+2026-03-25 03:48:28,398 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774406907402&signature=20e383cf7988720eb894337812749a922a875ce793b0130cf34a88299a5ae29c "HTTP/1.1 200 OK"
+2026-03-25 03:48:29,346 - httpx - INFO - HTTP Request: POST https://demo-api.binance.com/api/v3/order?symbol=SOLUSDT&side=BUY&type=MARKET&quantity=6.115&timestamp=1774406908401&signature=3ef5db74bf645d7089f4063e4af1afb590cb4271fcd00fc718a84e808d1bd5c7 "HTTP/1.1 200 OK"
+2026-03-25 03:48:29,624 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot8597560874:AAHdhWqLdAxYiPcpBS7q3j8f7ts0H-vCaQ0/sendMessage "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62455 - "POST /admin/process-signals HTTP/1.1" 200 OK
+2026-03-25 03:48:32,847 - asyncio - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-5' coro=<SignalProcessor.start() running at /Users/mac/Desktop/tradingbot/crypto-algo-bot/backend/services/signal_processor.py:25> wait_for=<Future pending cb=[<TaskWakeupMethWrapper object at 0x1079d5850>()]>>
+2026-03-25 03:48:32,897 - asyncio - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-46' coro=<<async_generator_athrow without __name__>()> exception=RuntimeError('aclose(): asynchronous generator is already running')>
 RuntimeError: aclose(): asynchronous generator is already running
-2026-03-25 02:50:26,177 - exchanges.binance_spot - ERROR - Error fetching balance: binance requires "apiKey" credential
-INFO:     127.0.0.1:58847 - "GET /account/status HTTP/1.1" 200 OK
-2026-03-25 02:50:36,348 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403435352&signature=a039389617a72529f689a983f98bed1b86767d6df907a9851ba30888f99070c3 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:58863 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:50:56,405 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403455473&signature=ee5d800ed22f318923918e198b1bafd86f74fe4acdf5ed6eebc05ca8fe247e7f "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:58882 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:51:06,290 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403465349&signature=fb5bc7ec22d2e7572e534e0da9f5a2600b26eec1d142e0dce7037fe87addfbe7 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:58895 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:51:19,532 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403478595&signature=337beb01c3c8fbea489d0c324afebe0c6e8ab6ec4e4013f327bfcf730923434b "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:58912 - "GET /account/balance?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:51:36,310 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403495354&signature=272b9a33b2b787d60740ac394b65093a217462cb3af9e508a7932f026977abf9 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:58931 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:52:06,350 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403525350&signature=dd54fb496dc02b2f403d52cc4c5c5c761e00d91fb22905786dc97b2177bf8014 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:58959 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:52:36,387 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403555378&signature=fd8bc07c97c439c68cbc6cd3106b6fb1ab88c624e777b2e2ef6ca79e5b6dab6f "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59058 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:53:06,297 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403585351&signature=e677df2402df853e64b1bdf11e96d2f6ed813b1a390a6eb64188a619f7a12bbe "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59091 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:53:36,340 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403615355&signature=77fbd0ebef4b634989f98844f9d3780959196e26e33ee2fd5dbf3347911ee9b0 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59120 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:54:06,304 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403645363&signature=44f58fa6f7c45d69e0e0935efcd5acded50fb7a0f8d9e6bdbe716ca40bbbb8bc "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59147 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:54:36,300 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403675354&signature=4c543bfe20212f18440f0afa037e0de76b992ef3431ca6d182083d24369e03d1 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59171 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:55:06,349 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403705350&signature=0174c0d76b48527f3afc1a0d829f2b2690df8cb6feb461b7914516965666d8d9 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59199 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:55:36,307 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403735363&signature=a23a41e91806d731b7f2c18ad799655e161502fc3407916743423c00041c7fe6 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59223 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:56:06,328 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403765373&signature=7b72b8445d789fe0714cc481692824f6e47d26120d606ffb160f7545968ead36 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59255 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:56:36,355 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403795362&signature=1e69b87ebc489ed140617921fc266ba5d364a85fd9b327ef4fd3f6e29e9c10f1 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59284 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:57:06,296 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403825356&signature=0f38223a73a67562d495b3cf8df39444b5eb2cb6f9824b6590b39e7cffa44dc5 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59309 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:57:36,296 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403855352&signature=1f003bf0c2de8e1c95170991156955f392dbd76ef1d176028b8a48e7d86c6846 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59336 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:58:06,358 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403885360&signature=9f8c5ce08ea1974849d3a5c2ed209d8afebe61e432db62195d74d1b26932f721 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59366 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:58:36,334 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403915366&signature=39fde2a4fb8024decc18f26fe834a07bc21cf8c7a706fd1db7286c9b5f217d23 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59402 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:59:06,303 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403945357&signature=3c1209e079358de147192e40ee6541f746ad560a92034ab4155eb8c2a181a6df "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59441 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 02:59:36,350 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774403975354&signature=852b4df3ae97c80a2bec8505bb4f3ffc0f5b93d28d7723520a804ee3b27f3c45 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59462 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 03:00:06,293 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774404005354&signature=5089fabbd5cdc5d4829233c0ed55a435d59959d3183dbd382f29dcd26373b0f8 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59490 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 03:00:36,309 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774404035362&signature=a6c102c56b8bb816a6c029351efd0d6e49a304020d18bff1c306725d3849c760 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59526 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 03:01:06,389 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774404065366&signature=8f9053f239eec670cf146ddf491bde75b23e2d3eebdde23a265e5dfe6b58fcff "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59556 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 03:01:36,304 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774404095356&signature=21b44845ba064cf87efb832219163a6a2210608cc3792f2b79e83f48124e5243 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59615 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 03:02:06,320 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774404125368&signature=2bfc80141b5c83ee5acfab6cee6a71e7b48f0de7e7eb0622cf8c97156a7a0ceb "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59654 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 03:02:36,374 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774404155378&signature=53c32da788c024f638965767f65d89eba506a05793423d247cd1b1b11970bf40 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59690 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 03:03:06,295 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774404185353&signature=e322cf3de327a4196a8f7918779b8e1d5070b8130950f43ed4f0af4a0267e447 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59719 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 03:03:36,306 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774404215356&signature=6ce10ebed2948c9bbac9ea4b7b0c791a0a48918859c012c4481dac665a5e0453 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59743 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 03:04:06,370 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774404245357&signature=8daa2338f5ee845233b1cf97016075dca8bbc7c22be32fac15562c1d98e2b034 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59761 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 03:04:36,310 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774404275361&signature=81d35a26f9d146b29242491906817816c00bd6d14cdef9b7c0e6285a2b7991a1 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59779 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 03:05:06,292 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774404305356&signature=24f6d5b3b6083d83dc92d7c2f4ef1d90064ec06f702b0c046cfb755307263a17 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59798 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
-2026-03-25 03:05:36,415 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774404335364&signature=e537631de1af77f4f7af7be2aaecfd47f4caa0ef629131daccdd0895490164a9 "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59820 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:48:33,915 - services.order_monitor - INFO - TP hit for SOLUSDT trade 4 at 91.37
+2026-03-25 03:48:34,862 - httpx - INFO - HTTP Request: POST https://demo-api.binance.com/api/v3/order?symbol=SOLUSDT&side=BUY&type=MARKET&quantity=6.115&timestamp=1774406913915&signature=43ecbc741d35082f2e107f9372d0eb979b64f4551b3f046fd00fa19aa55efe3e "HTTP/1.1 200 OK"
+2026-03-25 03:48:36,303 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774406915361&signature=a66c03fed3a450ac4e1d1477fb593772bb19c4ef10ed7606df0054b0d3e4579f "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62471 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:49:06,337 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774406945373&signature=0e51d730e053ab22d9afe7e50b0db236c7f05a378f4aeebbe272905e053c2241 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62530 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:49:36,287 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774406975352&signature=e9aa03856851537d0791f5978dda1075f70d0511621846d9bb2102881a6cf9fa "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62562 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:50:06,421 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407005383&signature=fd3b95aff7110748c219ec60b7e56abd3e7587c5f7b6b1654aad76c3c49c2794 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62585 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:50:25,927 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407024988&signature=7a52a596e4ba9a02c2b599cc957c3ac0998124e3176cab355e112f58cadc9306 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62605 - "GET /account/balance?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:50:36,333 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407035373&signature=14a216fcfd6e0a51034513854254b6d51f00f483c7427c333fdeb5d22ce196b2 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62614 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:51:06,283 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407065337&signature=bac6335563550484ff86d557c9c7dc85b1393f0c95996af16a162d9af5bf5a41 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62629 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:51:36,326 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407095327&signature=0e207ae83d8f5fbdb15d728537cbe3d8ea36f7f33e183f9d32f8ac10bb8b7a9b "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62651 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:52:06,278 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407125334&signature=c3c4a23da0979c2dd49b1abc09bb3eb775d8efb371b40a7599b0fdffb1815c3e "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62696 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:52:36,319 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407155341&signature=a1bd0be94f001b102e9f9471809fc2d0fc1a046a2ae7951d0510ce471f7e8893 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62734 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:53:06,341 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407185334&signature=9b2c02b614b84740066bc91e177784a4596d02233029cd3d539255e7b1ac3fc9 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62792 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:53:36,313 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407215344&signature=fe70ce0576b952ed4b1f36b213bf2d3647b30031091e588e3a942cfa0a39f9cc "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62813 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:54:06,290 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407245325&signature=a3f1b7372b91d21b3ea89040350b92a27b890654f5bcca2374c19a1f70529d3c "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62834 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:54:36,358 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407275338&signature=a01db7f5c3d8fc493736b107986d43b46e231fde579f23ff32242ea85bfa5284 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62864 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:55:06,351 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407305394&signature=c34531e6fc53c86a6de167b002b6f54562a3482cd68a2c0926fea6045ef02655 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62888 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:55:36,289 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407335338&signature=51a98f6101a329392b894489f71162ce15427ba278aaa3cc0b5753601d87639c "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62912 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:56:06,350 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407365341&signature=3a5d8eec80ef557131d22f6ed4dc3817da2121b7d59a01c13e12aa9084f2ab74 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:62955 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:56:36,377 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407395392&signature=39a2440c4f1f755ed5ebae7219b42c4c92c16a9bd69b7b24cb02f88be77f24bf "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63010 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:57:06,340 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407425367&signature=1985a3138866bca3718c106dae69adadac1c06223f718a04e02b68f5c336d0e0 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63044 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:57:36,377 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407455339&signature=76f67c242e2a256aa94967866f1cd2680c36930eb1a3b98828f345660c5dbe23 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63092 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:58:06,284 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407485326&signature=c74a7442db74feb5b37d66600e0aa95f46a92d6510483e857d487a87fc6773f6 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63124 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:58:36,332 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407515351&signature=e7361a799ceced35fbd09d2fe93782e26ba375d4961dce6db68b552c43deff70 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63143 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:59:06,332 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407545325&signature=99fc48bcb64033ca66355a157c7c6d1d2f8a5552ae88172ec22ee2a01ba6e553 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63164 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 03:59:36,266 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407575324&signature=7457a801c58482bf818bd58f8698fbe843a67724f331174d7d294869aa35f921 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63196 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:00:06,273 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407605325&signature=407919aa59c5f8af5971f7abbc195e3a39ca973f44b0d4dc881aa367cb9642b5 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63220 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:00:36,361 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407635336&signature=e29af7616b07a9fc776e6f87727fed318c2f499959024d474c0153c61acf1e31 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63248 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:01:06,341 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407665343&signature=14a190b9e9c82c57ddb2bfdab4b8719a7c3946cbbf295731c4054d0307fbd1a7 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63270 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:01:36,306 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407695343&signature=1c1c45021a5b91a54cefbeca65812cc4f361fc63bd42d9375b2ac19b1056edc0 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63302 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:02:06,345 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407725330&signature=9839d55a2da1ad07ec88efec4b998cca3e0d392ac51bd3eeda7d362541369043 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63339 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:02:36,335 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407755342&signature=b8bc0395ba78882631602f699028a9f36aa938514105b4453a909a5d27e120e0 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63375 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:03:06,350 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407785393&signature=dd8ed474fae6b0e5300bf31d2f708555bd40a8589ce2d903324d59e107684ee9 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63416 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:03:36,376 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407815330&signature=35176ba8bf2220bb151cd52b33d9f198da15712aaf2d43462487d53b9f4b426e "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63470 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:04:06,362 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407845374&signature=9283e31f72814adb02789cde20357af6d25ab66c92b8e269ecd6f287ff86c262 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63495 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:04:36,337 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407875334&signature=c1a7d92056f62e3baa38b828df17b0dd55538d55a2b91f84ec885de1fe9460cd "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63537 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:05:06,419 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407905335&signature=5ff0ee2950f38c0838a0a7f5fe8270492c99e317d114ac3d682c9e59ff59ff50 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63567 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:05:36,344 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407935346&signature=1c0d77fe6f45e312a33734b3795eb2e490efab5f6351c69bca795a0ea9fa9176 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63590 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:06:06,326 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407965349&signature=558c6dcb6b78d23d11679bc7aab37f5f366b72a32fa2e240213a6be5b040b770 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63624 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:06:36,333 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774407995326&signature=02fd5201e51395f6deeeeca3bb20863e87de64e876fb5a48469027b6dffcc887 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63645 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:07:06,293 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408025335&signature=d8faee466b412295a1cca663975aec6e8d2f7503934713c0ca6316f6822ded1c "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63677 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:07:36,303 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408055337&signature=f734cfeb0063585783f2e7f292c6c0148b45d599ebb2383e90f603975312b7fc "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63727 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:08:06,314 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408085323&signature=c911f90f78d06b5c875bcb06320358cc14c52af42bc2bc898e14202b7993cf06 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63761 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:08:36,321 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408115341&signature=dd1027b8bc2b83a5c900da2ff4cb2bd99bd764c3f1e30ceb176d14ebd1b4658f "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63784 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:09:06,305 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408145346&signature=08fed8d0071b93850a6303a4ca8ae03233346174959a4884b9b015c2d34aa046 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63816 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:09:36,388 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408175354&signature=9feafe035c47ec8107bd610ec1c5800c87331a318a3283c822699b7ca273d99a "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63859 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:10:06,316 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408205330&signature=ebfd1f5fce1b9381971b6ee8c643d7fb095a9e9157fa8c568a336c0273f80cca "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63881 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:10:36,268 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408235322&signature=7bfd19e456cf8b3592d16ad383139d3aef3fe3f40411058137e7837ff7eed9af "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63903 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:11:06,360 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408265336&signature=064aba00e4de7a11a83758746ea7f9828aaed6251aca55a3a0067bf9d9701e38 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63928 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:11:36,294 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408295346&signature=d365c043ef40868fa565709d7a2e613c78a2eeaefa96407972bec70c27e6da10 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63957 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:12:06,299 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408325352&signature=90eae903627cdd43978b1653b876154dae134fbeb43759fc1019b0f67e155922 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:63977 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:12:36,365 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408355364&signature=7ee8cb9db34f6488968f26e96f79e6b568b13b1e679fbada81cf64110fbbbd60 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64000 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:13:06,298 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408385348&signature=99923f181b3a6cf2d4ab948060b3ccc3464418315ef1dcb23a8c938a66a0557f "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64026 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:13:36,362 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408415381&signature=a2fae091c99673513f165ea3dafec48c80e8807c8d101fa15fe6888c1b78dc28 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64059 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:14:06,374 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408445360&signature=95e866e85db417bfbd8653dba4c313e3f2db3a710df5a71027b2ae29b13b5a48 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64081 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:14:36,333 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408475367&signature=bba8d8646fda531ffb6beafc1e9d55ce78fdb560802b593a8d9c641bb49bdc2d "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64109 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:15:06,321 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408505364&signature=4076f9e8317ec55b309797468626cfa75e86b9717c7e475495e0fe4d91cad955 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64131 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:15:36,392 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408535381&signature=182b86bf02e5262f6331a6ce8bf7f2d40eddcbd6856451544bd8753b012f374a "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64164 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:16:06,330 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408565365&signature=edf63a5ad9c259138df913b7090838d2f5c821cb48d497810e17ba2dbd30df7a "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64187 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:16:36,298 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408595352&signature=fdc68247fb8d10bd0bccfc736da48b75d3f169033cc25694dbff6c74ae3751ce "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64208 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:17:06,368 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408625360&signature=efd7580289c8a30e856e856f2c5966a9d60c9c5f8583ff6bf1249fb61909f0be "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64228 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:17:36,306 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408655362&signature=c7b5624a06f33f20dd6c47bac203a80a94b82fa46c056ea6c58269ff624bff6e "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64248 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:18:06,319 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408685363&signature=1eff75537229f7eafeef98faab355e1b2d47defdb5b5ba2d6f610f4e6f23f85d "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64272 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:18:36,422 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408715387&signature=e9839c9d9979e83a373c13afb4620db3d1a543d0d7e077ec0bc322bd6ac7903b "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64295 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:19:06,306 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408745358&signature=a339b9b7ad5ebb70e6a5322526c764525ef3a6401f6bb25f1c60264e6a0d8d17 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64312 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:19:36,314 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408775360&signature=105c0098b44c9acac0ded2cbb14b6e7512fa7cab867db9f55efcf11131392e51 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64341 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:20:06,345 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408805361&signature=43153125782d6525ae923aab682c6165166475075c1cbfb536e16c114bc7cf2e "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64359 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:20:36,310 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408835363&signature=bf1225929ba75f4697d018f7caa0a0a67fdec5f3c87e23058216c6df88fbcb5b "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64380 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:21:06,324 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408865358&signature=3a576b29c1cb48e777ac7b1f6915110611b971030cccd847dc1ada993cd166e8 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64397 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:21:36,362 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408895363&signature=adaab7d7c07d2c72cb8454a3a6d609d55befe91cbb818ab01828f8596c51891b "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64417 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:22:06,313 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408925364&signature=8c5a6efbceaea5f5304ac7004689dd85f74cf66bbfc4275e6ed7e137d8ef1c6d "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64435 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:22:36,321 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408955361&signature=6a5cb3e13e175d7a61d93a22b2f6519a4e675338c68cd3129bf4cd484f0296c7 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64457 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:23:06,398 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774408985364&signature=68f3d8aa77d4f4d66027cba2585a889e06f74b926efd018cd9592a6dcb96d5ed "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64481 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:23:36,335 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774409015363&signature=cbe7d2f6e5a0565d8a8109de944c052e160b0cfef681850c3ca868498517c409 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64502 - "GET /account/status?mode=demo HTTP/1.1" 200 OK
+2026-03-25 04:24:06,307 - httpx - INFO - HTTP Request: GET https://demo-api.binance.com/api/v3/account?timestamp=1774409045355&signature=e57bcaf24628f6e6d4c44723b825037f05445649948f3d0cbe7d1119844c0cb9 "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:64527 - "GET /account/status?mode=demo HTTP/1.1" 200 OK

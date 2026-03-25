@@ -1,0 +1,42 @@
+app = "crypto-bot-backend"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[[services]]
+  http_service = true
+  port = 8000
+
+[[services.ports]]
+  port = "80"
+
+[[services.ports]]
+  port = "443"
+
+[[services.env]]
+  name = "MODE"
+  value = "demo"
+
+[[services.env]]
+  name = "BINANCE_TESTNET_API_KEY"
+  value = "5TJENk5wn8jxejDSkYDkQr6FK15ECYsto9QvFikkC6G8odHgU6bxI8drDMnxb30O"
+
+[[services.env]]
+  name = "BINANCE_TESTNET_API_SECRET"
+  value = "Msw4ifcV1eDsjAwWBK76eMYrV7Zun0eYe43OAXRxdBbjUm2LHnm23RWOFUIEcTDs"
+
+[[services.env]]
+  name = "WEBHOOK_SECRET"
+  value = "your_secret_token"
+
+[[services.env]]
+  name = "TELEGRAM_BOT_TOKEN"
+  value = "8597560874:AAHdhWqLdAxYiPcpBS7q3j8f7ts0H-vCaQ0"
+
+[[services.env]]
+  name = "TELEGRAM_CHAT_ID"
+  value = "1680895282"
+
+[[services.env]]
+  name = "REDIS_URL"
+  value = "redis://localhost:6379"

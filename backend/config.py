@@ -8,8 +8,8 @@ class Settings(BaseSettings):
     BINANCE_TESTNET_API_KEY: str = ""
     BINANCE_TESTNET_API_SECRET: str = ""
     WEBHOOK_SECRET: str = "your_secret_token"
-    DATABASE_URL: str = "postgresql+asyncpg://botuser:pass@localhost:5432/cryptobot"
-    REDIS_URL: str = "redis://localhost:6379"
+    DATABASE_URL: str = ""
+    REDIS_URL: str = ""
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_CHAT_ID: str = ""
     
