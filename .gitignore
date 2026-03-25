@@ -8,3 +8,8 @@ node_modules/
 *.zip
 Untitled/
 op/
+*.ini
+check_data.py
+optimize*.py
+test_*.py
+add_methods.py
