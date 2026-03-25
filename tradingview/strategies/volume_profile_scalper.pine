@@ -1,0 +1,138 @@
+//@version=5
+strategy("Volume Profile Institutional Scalper [1m/5m]", overlay=true, initial_capital=1000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, max_labels_count=50, max_lines_count=50)
+
+// =========================================================================
+// 1. INPUTS
+// =========================================================================
+grp_vp = "Volume Profile Settings"
+lookback = input.int(150, "Profile Lookback (Bars)", minval=50, maxval=500, group=grp_vp, tooltip="Number of bars to calculate the volume profile.")
+rows = input.int(40, "Number of Price Bins", minval=10, maxval=100, group=grp_vp)
+valueAreaPct = input.int(70, "Value Area (%)", minval=10, maxval=100, group=grp_vp)
+
+grp_trend = "Trend & Execution Filter"
+useTrendFilter = input.bool(true, "Use 200 EMA Trend Filter", group=grp_trend)
+emaLength = input.int(200, "EMA Length", group=grp_trend)
+volSpikeMult = input.float(1.2, "Volume Spike Multiplier", group=grp_trend, tooltip="Entry requires volume to be this much higher than average.")
+
+grp_risk = "Risk Management"
+atrLen = input.int(14, "ATR Length", group=grp_risk)
+slMult = input.float(1.5, "Stop Loss (ATR Mult)", group=grp_risk)
+
+grp_webhook = "Webhook Integration"
+webhookSecret = input.string("your_secret_token", "Webhook Secret", group=grp_webhook)
+
+// =========================================================================
+// 2. VOLUME PROFILE CALCULATIONS (Rolling Window)
+// =========================================================================
+var float poc_price = na
+var float vah_price = na
+var float val_price = na
+
+float highest_price = ta.highest(high, lookback)
+float lowest_price = ta.lowest(low, lookback)
+float row_size = (highest_price - lowest_price) / rows
+
+if not na(highest_price) and not na(lowest_price) and row_size > 0
+    float[] vol_bins = array.new_float(rows, 0.0)
+    float total_vol = 0.0
+    
+    // Distribute volume into price bins
+    for i = 0 to lookback - 1
+        if na(close[i])
+            break
+        float typ_price = hlc3[i]
+        int bin_idx = math.floor((typ_price - lowest_price) / row_size)
+        bin_idx := math.max(0, math.min(rows - 1, bin_idx))
+        array.set(vol_bins, bin_idx, array.get(vol_bins, bin_idx) + volume[i])
+        total_vol += volume[i]
+        
+    // Find Point of Control (POC)
+    float max_vol = 0.0
+    int poc_idx = 0
+    for i = 0 to rows - 1
+        float v = array.get(vol_bins, i)
+        if v > max_vol
+            max_vol := v
+            poc_idx := i
+            
+    poc_price := lowest_price + (poc_idx * row_size) + (row_size / 2)
+    
+    // Calculate Value Area (VAH / VAL)
+    float va_vol = max_vol
+    int upper_idx = poc_idx
+    int lower_idx = poc_idx
+    float target_va_vol = total_vol * (valueAreaPct / 100.0)
+    
+    while va_vol < target_va_vol and (upper_idx < rows - 1 or lower_idx > 0)
+        float upper_v = upper_idx < rows - 1 ? array.get(vol_bins, upper_idx + 1) : -1.0
+        float lower_v = lower_idx > 0 ? array.get(vol_bins, lower_idx - 1) : -1.0
+        
+        if upper_v >= lower_v and upper_idx < rows - 1
+            upper_idx += 1
+            va_vol += upper_v
+        else if lower_idx > 0
+            lower_idx -= 1
+            va_vol += lower_v
+        else
+            break
+            
+    vah_price := lowest_price + (upper_idx * row_size) + row_size
+    val_price := lowest_price + (lower_idx * row_size)
+
+// =========================================================================
+// 3. VISUALIZATIONS
+// =========================================================================
+plot(poc_price, color=color.new(color.red, 20), title="POC", linewidth=2, style=plot.style_linebr)
+plot(vah_price, color=color.new(color.blue, 50), title="VAH", linewidth=1, style=plot.style_linebr)
+plot(val_price, color=color.new(color.blue, 50), title="VAL", linewidth=1, style=plot.style_linebr)
+
+ema200 = ta.ema(close, emaLength)
+plot(useTrendFilter ? ema200 : na, color=color.white, title="Macro Trend EMA")
+
+// =========================================================================
+// 4. ENTRY LOGIC (Value Area Fading / Mean Reversion)
+// =========================================================================
+atr = ta.atr(atrLen)
+avg_vol = ta.sma(volume, 20)
+vol_confirmed = volume > (avg_vol * volSpikeMult)
+
+// Bullish Rejection at Value Area Low (VAL)
+bool test_val = low <= val_price and close > val_price // Wick below VAL but close inside
+bool bullish_candle = close > open
+bool macro_uptrend = not useTrendFilter or close > ema200
+
+long_cond = test_val and bullish_candle and vol_confirmed and macro_uptrend
+
+// Bearish Rejection at Value Area High (VAH)
+bool test_vah = high >= vah_price and close < vah_price // Wick above VAH but close inside
+bool bearish_candle = close < open
+bool macro_downtrend = not useTrendFilter or close < ema200
+
+short_cond = test_vah and bearish_candle and vol_confirmed and macro_downtrend
+
+// =========================================================================
+// 5. EXECUTION & WEBHOOKS
+// =========================================================================
+if long_cond and strategy.position_size == 0
+    float sl = math.min(low - (atr * slMult), val_price - (atr * slMult))
+    float tp = poc_price > close ? poc_price : close + (atr * 2) // Magnet target is POC
+    
+    strategy.entry("Long", strategy.long)
+    strategy.exit("Exit Long", "Long", stop=sl, limit=tp)
+    
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "BUY", "strategy": "VP_Scalper", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + ', "stop_loss": ' + str.tostring(sl) + ', "take_profit": ' + str.tostring(tp) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+if short_cond and strategy.position_size == 0
+    float sl = math.max(high + (atr * slMult), vah_price + (atr * slMult))
+    float tp = poc_price < close ? poc_price : close - (atr * 2) // Magnet target is POC
+    
+    strategy.entry("Short", strategy.short)
+    strategy.exit("Exit Short", "Short", stop=sl, limit=tp)
+    
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "SELL", "strategy": "VP_Scalper", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + ', "stop_loss": ' + str.tostring(sl) + ', "take_profit": ' + str.tostring(tp) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// Plot Entry Signals
+plotshape(long_cond, title="Long Signal", location=location.belowbar, color=color.green, style=shape.triangleup, size=size.small)
+plotshape(short_cond, title="Short Signal", location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small)

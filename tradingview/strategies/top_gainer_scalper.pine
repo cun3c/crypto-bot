@@ -1,0 +1,91 @@
+//@version=6
+strategy("Top Gainer Momentum Scalper [1m/5m]", overlay=true, initial_capital=1000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.075, slippage=2, calc_on_every_tick=true)
+
+// =========================================================================
+// TOP GAINER MOMENTUM SCALPER (SPOT ONLY)
+// -------------------------------------------------------------------------
+// When a coin is on the "Top Gainers" list, traditional indicators break. 
+// RSI will stay "Overbought" (>80) for hours, and mean-reversion bots get 
+// destroyed. 
+//
+// The ONLY way to scalp a top gainer is to trade "Trend Continuation".
+// We wait for the coin to establish a massive parabolic uptrend, wait for 
+// retail to take profit (causing a tiny 1-2 minute dip into our moving 
+// average value zone), and we buy the dip to catch the next leg up.
+// =========================================================================
+
+// --- 1. INPUTS ---
+grp_trend = "1. Top Gainer Filter (Momentum)"
+roc_len = input.int(30, "Momentum Lookback (Bars)", group=grp_trend)
+roc_thresh = input.float(3.0, "Minimum Pump (%)", group=grp_trend, tooltip="Only allows trades if the coin has pumped >3% in the last X bars. Ensures it's actually a top gainer.")
+
+grp_ma = "2. The 'Value Zone' (Pullback Area)"
+fast_ema_len = input.int(9, "Fast EMA (The Magnet)", group=grp_ma)
+slow_ema_len = input.int(21, "Slow EMA (The Baseline)", group=grp_ma)
+
+grp_risk = "3. Scalping Targets"
+tp_pct = input.float(1.5, "Take Profit (%)", step=0.1, group=grp_risk, tooltip="Target the next leg up.")
+sl_pct = input.float(0.75, "Stop Loss (%)", step=0.1, group=grp_risk, tooltip="Tight stop! If a top gainer breaks its fast EMA trend, it dumps hard.")
+
+grp_webhook = "4. Webhook Integration"
+webhookSecret = input.string("your_secret_token", "Webhook Secret", group=grp_webhook)
+
+// --- 2. INDICATORS ---
+fast_ema = ta.ema(close, fast_ema_len)
+slow_ema = ta.ema(close, slow_ema_len)
+
+// Momentum (Rate of Change) -> Is it pumping?
+pump_roc = ta.roc(close, roc_len)
+
+plot(fast_ema, title="9 EMA (Fast)", color=color.new(color.blue, 0), linewidth=2)
+plot(slow_ema, title="21 EMA (Slow)", color=color.new(color.yellow, 0), linewidth=2)
+
+// Fill the "Value Zone" where we want to buy the dip
+fill(plot(fast_ema, display=display.none), plot(slow_ema, display=display.none), color=fast_ema > slow_ema ? color.new(color.green, 90) : color.new(color.red, 90), title="Value Zone")
+
+// --- 3. THE "TOP GAINER" LOGIC ---
+// Rule 1: It must be pumping hard right now
+bool is_pumping = pump_roc > roc_thresh
+
+// Rule 2: It must be in a perfect micro-uptrend (Fast EMA > Slow EMA)
+bool is_uptrend = fast_ema > slow_ema
+
+// Rule 3: The Pullback -> Price dips into or below the Fast EMA, but holds the Slow EMA
+bool is_pullback = low <= fast_ema and close > slow_ema
+
+// Rule 4: The Trigger -> The candle closes strong (Bullish Rejection/Engulfing)
+// We want a green candle that closes in the upper 50% of its range, showing buyers stepped in.
+float candle_range = high - low
+bool bullish_rejection = (close > open) and (close >= low + (candle_range * 0.5))
+
+// LONG CONDITION (Spot Long Only)
+bool long_cond = is_pumping and is_uptrend and is_pullback and bullish_rejection
+
+// --- 4. EXECUTION ---
+if long_cond and strategy.position_size == 0
+    float entry_price = close
+    float tp_price = entry_price * (1 + (tp_pct / 100))
+    float sl_price = entry_price * (1 - (sl_pct / 100))
+    
+    strategy.entry("Gainer_Dip", strategy.long, comment="Buy_The_Dip")
+    strategy.exit("Exit_Gainer", "Gainer_Dip", limit=tp_price, stop=sl_price)
+    
+    // Webhook JSON to your backend
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "BUY", "strategy": "Top_Gainer_Scalper", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(entry_price) + ', "take_profit": ' + str.tostring(tp_price) + ', "stop_loss": ' + str.tostring(sl_price) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// --- 5. VISUALIZATIONS ---
+// Draw green arrows when we catch a perfect dip on a pumping coin
+plotshape(long_cond and strategy.position_size == 0, title="Buy Signal", location=location.belowbar, color=color.lime, style=shape.triangleup, size=size.small, text="BUY DIP")
+
+// Show active TP/SL lines
+plot(strategy.position_size > 0 ? strategy.position_avg_price * (1 + (tp_pct / 100)) : na, color=color.new(color.green, 50), style=plot.style_linebr, linewidth=2, title="Active TP")
+plot(strategy.position_size > 0 ? strategy.position_avg_price * (1 - (sl_pct / 100)) : na, color=color.new(color.red, 50), style=plot.style_linebr, linewidth=2, title="Active SL")
+
+// Dashboard UI on Chart to show momentum status
+var table dashboard = table.new(position.top_right, 2, 2, border_width = 1)
+if barstate.islast
+    table.cell(dashboard, 0, 0, "Momentum (30 Bars):", text_color=color.white, bgcolor=color.black)
+    table.cell(dashboard, 1, 0, str.tostring(pump_roc, "#.##") + "%", text_color=color.white, bgcolor=pump_roc > roc_thresh ? color.green : color.red)
+    table.cell(dashboard, 0, 1, "Gainer Status:", text_color=color.white, bgcolor=color.black)
+    table.cell(dashboard, 1, 1, is_pumping ? "PUMPING (ACTIVE)" : "FLAT (WAITING)", text_color=color.white, bgcolor=is_pumping ? color.green : color.gray)

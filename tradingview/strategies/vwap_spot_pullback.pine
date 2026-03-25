@@ -1,0 +1,76 @@
+//@version=6
+strategy("Spot Scalper - VWAP Pullback Engine", overlay=true, initial_capital=1000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.075, slippage=3, calc_on_every_tick=true)
+
+// =========================================================================
+// SPOT SCALPER - VWAP PULLBACK ENGINE (V6)
+// -------------------------------------------------------------------------
+// If ultra-fast momentum is failing, it's usually due to slippage and
+// exchange fees eating fractions of a percent. We need a strategy that 
+// aims for slightly larger moves (0.5% - 1.0%) but still scalps often.
+// 
+// Logic:
+// 1. Trend: Only take longs when price is ABOVE the 15m VWAP.
+// 2. Pullback: Wait for price to drop down and touch the 1m VWAP.
+// 3. Confirmation: Enter when an RSI(14) crosses up from oversold (<30).
+// =========================================================================
+
+// --- 1. INPUTS ---
+grp_trend_vwap = "Macro Trend (Higher Timeframe)"
+htf_res = input.timeframe("15", "Higher Timeframe", group=grp_trend_vwap)
+
+grp_micro_vwap = "Micro Entry (Current Timeframe)"
+rsi_len = input.int(14, "RSI Length", group=grp_micro_vwap)
+rsi_os = input.int(35, "RSI Oversold Level", group=grp_micro_vwap)
+
+grp_risk_vwap = "Risk Management (Spot Only)"
+tp_pct = input.float(0.8, "Take Profit (%)", step=0.1, group=grp_risk_vwap)
+sl_pct = input.float(0.4, "Stop Loss (%)", step=0.1, group=grp_risk_vwap)
+
+grp_webhook_vwap = "Webhook Integration"
+webhookSecret = input.string("your_secret_token", "Webhook Secret", group=grp_webhook_vwap)
+
+// --- 2. INDICATORS ---
+// Current Timeframe VWAP (e.g., 1m or 5m)
+vwap_current = ta.vwap(hlc3)
+
+// Higher Timeframe VWAP (e.g., 15m)
+vwap_htf = request.security(syminfo.tickerid, htf_res, ta.vwap(hlc3))
+
+// Plot VWAPs
+plot(vwap_current, color=color.new(color.blue, 0), title="Micro VWAP", linewidth=1)
+plot(vwap_htf, color=color.new(color.yellow, 0), title="Macro VWAP (HTF)", linewidth=2)
+
+// RSI
+rsi_val = ta.rsi(close, rsi_len)
+
+// --- 3. ENTRY LOGIC ---
+// 1. We must be in a Macro Uptrend (Price above HTF VWAP)
+macro_bull = close > vwap_htf
+
+// 2. We wait for a micro-pullback (Price dips near or below the Micro VWAP)
+micro_pullback = low <= vwap_current
+
+// 3. Momentum shifts back up (RSI crosses over oversold level)
+mom_shift = ta.crossover(rsi_val, rsi_os)
+
+// LONG CONDITION
+long_cond = macro_bull and micro_pullback and mom_shift
+
+// --- 4. EXECUTION ---
+if long_cond and strategy.position_size == 0
+    float entry_price = close
+    float tp_price = entry_price * (1 + (tp_pct / 100))
+    float sl_price = entry_price * (1 - (sl_pct / 100))
+    
+    strategy.entry("Spot_Pullback", strategy.long)
+    strategy.exit("Exit_Pullback", "Spot_Pullback", limit=tp_price, stop=sl_price)
+    
+    // Webhook JSON
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "BUY", "strategy": "VWAP_Spot_Scalper", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(entry_price) + ', "take_profit": ' + str.tostring(tp_price) + ', "stop_loss": ' + str.tostring(sl_price) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// --- 5. VISUALIZATION ---
+plotshape(long_cond and strategy.position_size == 0, title="Buy Signal", location=location.belowbar, color=color.lime, style=shape.triangleup, size=size.small, text="BUY")
+
+plot(strategy.position_size > 0 ? strategy.position_avg_price * (1 + (tp_pct / 100)) : na, color=color.new(color.green, 50), style=plot.style_linebr, linewidth=2, title="Active TP")
+plot(strategy.position_size > 0 ? strategy.position_avg_price * (1 - (sl_pct / 100)) : na, color=color.new(color.red, 50), style=plot.style_linebr, linewidth=2, title="Active SL")

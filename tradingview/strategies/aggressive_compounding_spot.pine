@@ -1,0 +1,91 @@
+//@version=6
+strategy("Aggressive Compounding Pullback [Spot - 1h/15m]", overlay=true, initial_capital=1000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.075, slippage=2, calc_on_every_tick=true)
+
+// =========================================================================
+// AGGRESSIVE COMPOUNDING SPOT PULLBACK (HIGH YIELD ENGINE)
+// -------------------------------------------------------------------------
+// The Mathematical Limit of Spot Trading: 
+// Over the last 90 days, SOLUSDT moved ~120% from absolute bottom to top.
+// To extract 300% profit from a 120% asset move using ONLY Spot (no leverage),
+// the bot must perfectly compound 100% of the account equity on every 
+// single mid-trend dip and sell every mid-trend peak.
+//
+// This strategy uses an aggressive SuperTrend filter to confirm the macro
+// uptrend, and heavily buys every micro-crash (RSI 2 < 15). It then 
+// aggressively takes profit (RSI 2 > 80) and compounds the new larger 
+// equity balance into the next trade.
+// =========================================================================
+
+// --- 1. INPUTS ---
+grp_trend = "Macro Trend Direction"
+st_atr_len = input.int(10, "SuperTrend ATR Length", group=grp_trend)
+st_mult = input.float(3.0, "SuperTrend Multiplier", step=0.1, group=grp_trend, tooltip="Ensures we only buy the dip when the overall market is skyrocketing.")
+
+grp_entry = "Micro Dip Detection (Entry)"
+rsi_len = input.int(2, "RSI Length", group=grp_entry)
+rsi_os = input.int(15, "RSI Oversold (Panic Selloff)", group=grp_entry)
+
+grp_exit = "Aggressive Compounding Exits"
+rsi_ob = input.int(80, "RSI Overbought (Euphoria Pump)", group=grp_exit)
+trail_pct = input.float(3.0, "Trailing Stop Loss (%)", step=0.5, group=grp_exit, tooltip="Tight trailing stop to protect the compounded capital if the dip keeps dipping.")
+
+grp_webhook = "Webhook Integration"
+webhookSecret = input.string("your_secret_token", "Webhook Secret", group=grp_webhook)
+
+// --- 2. MACRO TREND (SUPERTREND) ---
+[supertrend, direction] = ta.supertrend(st_mult, st_atr_len)
+is_uptrend = direction < 0
+
+// Plot Supertrend
+plot(is_uptrend ? supertrend : na, "Uptrend Support", color=color.new(color.green, 0), style=plot.style_linebr, linewidth=2)
+plot(not is_uptrend ? supertrend : na, "Downtrend Resistance", color=color.new(color.red, 0), style=plot.style_linebr, linewidth=2)
+
+// --- 3. MICRO PULLBACK (RSI 2) ---
+rsi2 = ta.rsi(close, rsi_len)
+
+// LONG CONDITION: Market is in a massive uptrend, but there is a sudden 15m/1h panic dump.
+bool long_cond = is_uptrend and (rsi2 < rsi_os) and (close > supertrend)
+
+// --- 4. EXECUTION (100% EQUITY COMPOUNDING) ---
+if long_cond and strategy.position_size == 0
+    strategy.entry("Aggressive_Buy", strategy.long, comment="Dip_Bought")
+    
+    // Send BUY webhook to backend
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "BUY", "strategy": "Compound_Spot", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + ', "stop_loss": 0, "take_profit": 0}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// --- 5. DYNAMIC EXITS & TRAILING STOP ---
+// Condition 1: The dip violently reverses into a euphoria pump (Take Profit)
+bool tp_cond = strategy.position_size > 0 and (rsi2 > rsi_ob)
+
+if tp_cond
+    strategy.close("Aggressive_Buy", comment="Euphoria_Sold")
+    
+    // Send CLOSE webhook to backend
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "CLOSE", "strategy": "Compound_Spot", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// Condition 2: Trailing Stop Loss (calculated dynamically based on highest price since entry)
+var float highest_price = na
+
+if strategy.position_size > 0
+    if na(highest_price) or high > highest_price
+        highest_price := high
+
+// If price drops X% from the highest point achieved while in the trade, kill the trade.
+float trail_price = highest_price * (1 - (trail_pct / 100))
+
+if strategy.position_size > 0 and close <= trail_price
+    strategy.close("Aggressive_Buy", comment="Trailing_Stop_Hit")
+    
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "CLOSE", "strategy": "Compound_Spot", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// Reset highest price when flat
+if strategy.position_size == 0
+    highest_price := na
+
+// --- 6. VISUALIZATIONS ---
+plotshape(long_cond and strategy.position_size == 0, title="Buy Signal", location=location.belowbar, color=color.lime, style=shape.triangleup, size=size.small, text="BUY")
+plotshape(tp_cond, title="Take Profit", location=location.abovebar, color=color.yellow, style=shape.triangledown, size=size.small, text="SELL")
+plot(strategy.position_size > 0 ? trail_price : na, "Trailing Stop", color=color.new(color.red, 50), style=plot.style_linebr, linewidth=1)

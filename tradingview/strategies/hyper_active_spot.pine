@@ -1,0 +1,78 @@
+//@version=6
+strategy("Hyper-Active Spot Scalper [1m/30s]", overlay=true, initial_capital=1000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_value=0.04, calc_on_every_tick=true)
+
+// =========================================================================
+// HYPER-ACTIVE MICRO SCALPER (SPOT LONG ONLY) - V6 UPDATE
+// -------------------------------------------------------------------------
+// Goal: 10+ trades per 5 minutes.
+// Design: Focuses purely on tick-level volatility, micro-support bounces, 
+//         and bid-ask imbalances. 
+// =========================================================================
+
+// --- 1. INPUTS ---
+grp_micro_hs = "Micro-Structure & Speed"
+speed_len_hs = input.int(2, "Momentum Speed (Extremely Fast)", group=grp_micro_hs, tooltip="Length for micro-momentum calculation. Keep very low (2-5).")
+vol_thresh_hs = input.float(1.1, "Micro Volume Spike Multiplier", step=0.1, group=grp_micro_hs, tooltip="Detects tiny bursts of volume.")
+
+grp_risk_hs = "Hyper-Tight Risk"
+tp_pct_hs = input.float(0.15, "Take Profit (%)", step=0.05, group=grp_risk_hs, tooltip="Scalp for fractions of a percent (e.g., 0.15%).")
+sl_pct_hs = input.float(0.10, "Stop Loss (%)", step=0.05, group=grp_risk_hs, tooltip="Cut losers instantly (e.g., 0.10%).")
+max_bars_hs = input.int(3, "Time Stop (Max Bars)", group=grp_risk_hs, tooltip="If trade doesn't hit TP/SL in 3 bars, get out.")
+
+grp_webhook_hs = "Webhook Integration"
+webhookSecret_hs = input.string("your_secret_token", "Webhook Secret", group=grp_webhook_hs)
+
+// --- 2. MICRO-MOMENTUM LOGIC ---
+// 2a. The "Micro Crash" (Price drops sharply in the last 2 bars)
+float roc_hs = ta.roc(close, speed_len_hs)
+bool is_micro_crash_hs = roc_hs < -0.15 // Dropped more than 0.15% very quickly
+
+// 2b. The "Volume Burst" (Sudden spike in buying pressure)
+float avg_vol_hs = ta.sma(volume, 10)
+bool is_vol_spike_hs = volume > (avg_vol_hs * vol_thresh_hs)
+
+// 2c. The "Rejection Wick" (Candle closes near its high after dropping)
+float candle_range_hs = high - low
+float lower_wick_hs = close - low
+bool is_rejection_hs = (candle_range_hs > 0) and (lower_wick_hs / candle_range_hs > 0.6) // Closing in the top 40% of the candle
+
+// --- 3. EXECUTION LOGIC (SPOT LONG ONLY) ---
+// LONG COND: Sharp micro-drop + Volume spike + Long lower wick (Buyers stepping in)
+bool long_cond_hs = is_micro_crash_hs and is_vol_spike_hs and is_rejection_hs
+
+// Track bars in trade for the Time Stop
+var int trade_bars_hs = 0
+if strategy.position_size != 0
+    trade_bars_hs += 1
+else
+    trade_bars_hs := 0
+
+// --- 4. ALERTS & ORDERS ---
+if long_cond_hs and strategy.position_size == 0
+    // Calculate exact price targets based on percentage
+    float entry_price_hs = close
+    float tp_price_hs = entry_price_hs * (1 + (tp_pct_hs / 100))
+    float sl_price_hs = entry_price_hs * (1 - (sl_pct_hs / 100))
+    
+    strategy.entry("Spot_Long", strategy.long)
+    strategy.exit("Exit_Long", "Spot_Long", limit=tp_price_hs, stop=sl_price_hs)
+    
+    // Send BUY webhook to your backend
+    alert_msg = '{"secret": "' + webhookSecret_hs + '", "symbol": "' + syminfo.ticker + '", "action": "BUY", "strategy": "Hyper_Scalp_Spot", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(entry_price_hs) + ', "take_profit": ' + str.tostring(tp_price_hs) + ', "stop_loss": ' + str.tostring(sl_price_hs) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// --- 5. TIME STOP (Hyper-Active Management) ---
+// If the trade stalls for more than X bars, close it at market price.
+if strategy.position_size > 0 and trade_bars_hs >= max_bars_hs
+    strategy.close("Spot_Long", comment="Time_Stop")
+    
+    // Send CLOSE webhook to your backend
+    alert_msg = '{"secret": "' + webhookSecret_hs + '", "symbol": "' + syminfo.ticker + '", "action": "CLOSE", "strategy": "Hyper_Scalp_Spot", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// --- 6. VISUALIZATION ---
+plotshape(long_cond_hs and strategy.position_size == 0, title="Buy Signal", location=location.belowbar, color=color.lime, style=shape.triangleup, size=size.small, text="BUY")
+
+// Plot the Take Profit and Stop Loss levels visually while in a trade
+plot(strategy.position_size > 0 ? strategy.position_avg_price * (1 + (tp_pct_hs / 100)) : na, color=color.new(color.green, 50), style=plot.style_linebr, linewidth=2, title="Active TP")
+plot(strategy.position_size > 0 ? strategy.position_avg_price * (1 - (sl_pct_hs / 100)) : na, color=color.new(color.red, 50), style=plot.style_linebr, linewidth=2, title="Active SL")

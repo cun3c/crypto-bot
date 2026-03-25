@@ -1,0 +1,92 @@
+//@version=5
+strategy("Connors RSI-2 Alpha Engine [1m/5m]", overlay=true, initial_capital=1000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, commission_value=0.04)
+
+// =========================================================================
+// THE CONNORS RSI-2 PULLBACK STRATEGY (ADAPTED FOR CRYPTO)
+// -------------------------------------------------------------------------
+// This is one of the most historically profitable algorithmic models.
+// It relies on:
+// 1. A Macro Trend Filter (200 EMA) to ensure we trade with institutions.
+// 2. A Micro Momentum Oscillator (RSI period 2) to find extreme exhaustion.
+// 3. We buy blood in an uptrend. We short euphoria in a downtrend.
+// =========================================================================
+
+// --- INPUTS ---
+grp_trend = "1. Trend Filter"
+ema_len = input.int(200, "Macro Trend EMA", group=grp_trend)
+
+grp_rsi = "2. RSI(2) Settings"
+rsi_len = input.int(2, "RSI Length", group=grp_rsi)
+rsi_ob = input.int(90, "Overbought (Short Trigger)", group=grp_rsi)
+rsi_os = input.int(10, "Oversold (Long Trigger)", group=grp_rsi)
+
+grp_exit = "3. Exit Criteria"
+exit_ema_len = input.int(10, "Exit EMA (Mean Reversion Target)", group=grp_exit)
+use_sl = input.bool(true, "Use ATR Stop Loss?", group=grp_exit)
+atr_len = input.int(14, "ATR Length", group=grp_exit)
+sl_mult = input.float(3.0, "Stop Loss ATR Multiplier", group=grp_exit, tooltip="Wide stop loss to give the pullback room to breathe.")
+
+grp_webhook = "4. Webhook"
+webhookSecret = input.string("your_secret_token", "Webhook Secret", group=grp_webhook)
+
+// --- INDICATORS ---
+macro_ema = ta.ema(close, ema_len)
+exit_ema = ta.ema(close, exit_ema_len)
+rsi2 = ta.rsi(close, rsi_len)
+atr = ta.atr(atr_len)
+
+plot(macro_ema, color=color.white, linewidth=2, title="Macro EMA (200)")
+plot(exit_ema, color=color.yellow, linewidth=1, title="Exit Target EMA (10)")
+
+// --- ENTRY LOGIC ---
+// Long: Price is ABOVE 200 EMA (Uptrend). RSI(2) crashes below 10 (Panic sell-off). Candle closes green (Rejection of lows).
+long_cond = (close > macro_ema) and (rsi2 < rsi_os) and (close > open)
+
+// Short: Price is BELOW 200 EMA (Downtrend). RSI(2) spikes above 90 (Euphoria pump). Candle closes red (Rejection of highs).
+short_cond = (close < macro_ema) and (rsi2 > rsi_ob) and (close < open)
+
+// --- EXECUTION & WEBHOOKS ---
+// Variables to hold stop loss levels
+var float long_sl = na
+var float short_sl = na
+
+// LONG TRADES
+if long_cond and strategy.position_size == 0
+    long_sl := use_sl ? close - (atr * sl_mult) : na
+    strategy.entry("Long", strategy.long)
+    
+    if use_sl
+        strategy.exit("Exit Long SL", "Long", stop=long_sl)
+        
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "BUY", "strategy": "RSI2_Alpha", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + ', "stop_loss": ' + str.tostring(long_sl) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// Exit Long when price reverts to the short-term mean (10 EMA)
+if strategy.position_size > 0 and close > exit_ema
+    strategy.close("Long", comment="Mean Revert Exit")
+    
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "CLOSE", "strategy": "RSI2_Alpha", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+
+// SHORT TRADES
+if short_cond and strategy.position_size == 0
+    short_sl := use_sl ? close + (atr * sl_mult) : na
+    strategy.entry("Short", strategy.short)
+    
+    if use_sl
+        strategy.exit("Exit Short SL", "Short", stop=short_sl)
+        
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "SELL", "strategy": "RSI2_Alpha", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + ', "stop_loss": ' + str.tostring(short_sl) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// Exit Short when price reverts to the short-term mean (10 EMA)
+if strategy.position_size < 0 and close < exit_ema
+    strategy.close("Short", comment="Mean Revert Exit")
+    
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "CLOSE", "strategy": "RSI2_Alpha", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// --- VISUALIZATIONS ---
+bgcolor(long_cond ? color.new(color.green, 80) : na, title="Long Background")
+bgcolor(short_cond ? color.new(color.red, 80) : na, title="Short Background")

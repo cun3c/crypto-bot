@@ -1,0 +1,135 @@
+//@version=5
+strategy("Quant Regime-Switching Engine [1m/5m]", overlay=true, initial_capital=1000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, max_labels_count=50, max_lines_count=50)
+
+// =========================================================================
+// INTRODUCTION: SYNTHESIZED FROM QUANTITATIVE FINANCE LITERATURE
+// Concepts derived from:
+// 1. "Advances in Financial Machine Learning" (Marcos Lopez de Prado) - Time barriers & Meta-labeling
+// 2. "Quantitative Trading" (Ernest Chan) - Regime switching & Z-score statistical arbitrage
+// 3. "Trading Volatility" (Colin Bennett) - Volatility-adjusted position sizing
+// =========================================================================
+
+// =========================================================================
+// 1. INPUTS
+// =========================================================================
+grp_regime = "1. Market Regime (Choppiness/Hurst)"
+chop_len = input.int(14, "Choppiness Index Length", group=grp_regime)
+chop_threshold = input.float(50.0, "Choppiness Threshold", group=grp_regime, tooltip="> 50 = Choppy (Mean Reversion), < 50 = Trending (Momentum)")
+
+grp_stat = "2. Statistical Anomaly (Z-Score)"
+z_length = input.int(50, "Z-Score Lookback", group=grp_stat)
+z_reversion = input.float(2.5, "Z-Score Reversion Threshold", group=grp_stat, tooltip="Standard deviations from mean to fade.")
+z_momentum = input.float(1.5, "Z-Score Momentum Threshold", group=grp_stat, tooltip="Standard deviations from mean to ride.")
+
+grp_of = "3. Synthetic Order Flow (Delta)"
+of_len = input.int(10, "Order Flow Smoothing", group=grp_of)
+
+grp_risk = "4. Risk Management (Lopez de Prado Triple-Barrier)"
+atr_len = input.int(14, "ATR Length", group=grp_risk)
+sl_mult = input.float(1.5, "Stop Loss (ATR)", group=grp_risk)
+tp_mult = input.float(2.0, "Take Profit (ATR)", group=grp_risk)
+max_bars = input.int(15, "Time Barrier (Max Bars)", group=grp_risk, tooltip="If trade doesn't hit SL/TP in X bars, exit immediately to free capital.")
+
+grp_webhook = "5. Integration"
+webhookSecret = input.string("your_secret_token", "Webhook Secret", group=grp_webhook)
+
+// =========================================================================
+// 2. MARKET REGIME DETECTION (Choppiness Index)
+// Measures if the market is fractal/choppy or trending.
+// =========================================================================
+atr_sum = math.sum(ta.atr(1), chop_len)
+hi_highest = ta.highest(high, chop_len)
+lo_lowest = ta.lowest(low, chop_len)
+choppiness = 100 * math.log10(atr_sum / (hi_highest - lo_lowest)) / math.log10(chop_len)
+
+bool is_choppy = choppiness > chop_threshold
+bool is_trending = choppiness <= chop_threshold
+
+// =========================================================================
+// 3. STATISTICAL Z-SCORE (Price Anomaly)
+// Measures how far price is from its statistical mean.
+// =========================================================================
+basis = ta.vwap(hlc3) // Using Volume-Weighted mean instead of simple moving average
+dev = ta.stdev(close, z_length)
+z_score = (close - basis) / (dev == 0 ? 1 : dev)
+
+// =========================================================================
+// 4. SYNTHETIC ORDER FLOW (Intrabar Volume Delta)
+// Approximates aggressive buying vs aggressive selling
+// =========================================================================
+float tr_range = high - low
+float buy_pressure = tr_range == 0 ? 0 : volume * ((close - low) / tr_range)
+float sell_pressure = tr_range == 0 ? 0 : volume * ((high - close) / tr_range)
+float vol_delta = buy_pressure - sell_pressure
+float smoothed_delta = ta.wma(vol_delta, of_len)
+
+// =========================================================================
+// 5. QUANTITATIVE TRADING LOGIC (Regime Switching)
+// =========================================================================
+// Regime 1: MEAN REVERSION (Market is Choppy)
+// Logic: Price is statistically overextended (Z-Score > 2.5), BUT order flow is shifting (Delta reversing).
+bool mean_revert_long = is_choppy and (z_score <= -z_reversion) and (smoothed_delta > 0)
+bool mean_revert_short = is_choppy and (z_score >= z_reversion) and (smoothed_delta < 0)
+
+// Regime 2: MOMENTUM BREAKOUT (Market is Trending)
+// Logic: Price is breaking out statistically (Z-Score > 1.5) AND order flow is heavily supporting the move.
+bool momentum_long = is_trending and (z_score >= z_momentum) and (smoothed_delta > ta.stdev(smoothed_delta, 20))
+bool momentum_short = is_trending and (z_score <= -z_momentum) and (smoothed_delta < -ta.stdev(smoothed_delta, 20))
+
+bool long_cond = mean_revert_long or momentum_long
+bool short_cond = mean_revert_short or momentum_short
+
+// =========================================================================
+// 6. TRIPLE-BARRIER EXECUTION (Price Target, Stop Loss, Time Expiration)
+// =========================================================================
+var int trade_bars = 0
+if strategy.position_size != 0
+    trade_bars += 1
+else
+    trade_bars := 0
+
+float atr = ta.atr(atr_len)
+
+// Entry Logic
+if long_cond and strategy.position_size == 0
+    float sl = close - (atr * sl_mult)
+    float tp = close + (atr * tp_mult)
+    string strat_name = is_choppy ? "Quant_MeanRevert_Long" : "Quant_Momentum_Long"
+    
+    strategy.entry("Long", strategy.long, comment=strat_name)
+    strategy.exit("Exit Long", "Long", stop=sl, limit=tp)
+    
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "BUY", "strategy": "' + strat_name + '", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + ', "stop_loss": ' + str.tostring(sl) + ', "take_profit": ' + str.tostring(tp) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+if short_cond and strategy.position_size == 0
+    float sl = close + (atr * sl_mult)
+    float tp = close - (atr * tp_mult)
+    string strat_name = is_choppy ? "Quant_MeanRevert_Short" : "Quant_Momentum_Short"
+    
+    strategy.entry("Short", strategy.short, comment=strat_name)
+    strategy.exit("Exit Short", "Short", stop=sl, limit=tp)
+    
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "SELL", "strategy": "' + strat_name + '", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + ', "stop_loss": ' + str.tostring(sl) + ', "take_profit": ' + str.tostring(tp) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// Time Barrier Exit (Lopez de Prado concept)
+// If the trade is stagnant and hasn't hit SL or TP in X bars, kill it. Capital velocity is king.
+if strategy.position_size != 0 and trade_bars >= max_bars
+    strategy.close_all(comment="Time_Barrier_Exit")
+    
+    alert_msg = '{"secret": "' + webhookSecret + '", "symbol": "' + syminfo.ticker + '", "action": "CLOSE", "strategy": "Quant_Time_Barrier", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// =========================================================================
+// 7. CHART VISUALIZATIONS
+// =========================================================================
+// Color candles based on regime to help you visually backtest
+color candle_color = is_choppy ? color.new(color.gray, 50) : (smoothed_delta > 0 ? color.new(color.green, 20) : color.new(color.red, 20))
+plotcandle(open, high, low, close, color=candle_color, title="Regime Candles")
+
+plotshape(mean_revert_long, title="MR Long", location=location.belowbar, color=color.blue, style=shape.triangleup, size=size.small, text="MR")
+plotshape(mean_revert_short, title="MR Short", location=location.abovebar, color=color.fuchsia, style=shape.triangledown, size=size.small, text="MR")
+
+plotshape(momentum_long, title="Mom Long", location=location.belowbar, color=color.green, style=shape.triangleup, size=size.small, text="MOM")
+plotshape(momentum_short, title="Mom Short", location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small, text="MOM")

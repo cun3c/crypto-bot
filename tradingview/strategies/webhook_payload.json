@@ -1,0 +1,10 @@
+{
+  "secret": "your_secret_token",
+  "symbol": "{{ticker}}",
+  "action": "{{strategy.order.action}}",
+  "strategy": "MyStrategy",
+  "timeframe": "{{interval}}",
+  "price": {{close}},
+  "stop_loss": 0,
+  "take_profit": 0
+}

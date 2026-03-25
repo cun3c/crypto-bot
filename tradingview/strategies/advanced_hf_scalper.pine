@@ -1,0 +1,96 @@
+//@version=5
+strategy("Advanced HF Scalping Engine [1m/5m]", overlay=true, initial_capital=1000, default_qty_type=strategy.percent_of_equity, default_qty_value=100, calc_on_every_tick=true, process_orders_on_close=true)
+
+// =========================================================================
+// 1. INPUTS & CONFIGURATION
+// =========================================================================
+grp_vol = "Volume & Volatility"
+rvol_threshold = input.float(1.5, "Relative Volume Threshold", step=0.1, group=grp_vol, tooltip="Triggers only when volume is 1.5x higher than the 20-period average. Tracks institutional footprint.")
+bb_length = input.int(20, "BB Length", group=grp_vol)
+bb_mult = input.float(2.0, "BB Standard Deviation", group=grp_vol)
+
+grp_trend = "Institutional Trend"
+use_vwap = input.bool(true, "Filter Trades with VWAP", group=grp_trend, tooltip="Only take Longs above VWAP, Shorts below VWAP.")
+
+grp_risk = "High-Frequency Risk Management"
+atr_length = input.int(10, "ATR Length (Micro)", group=grp_risk)
+sl_atr_mult = input.float(1.0, "Stop Loss (ATR Mult)", step=0.1, group=grp_risk, tooltip="Very tight stop loss for scalping.")
+tp_atr_mult = input.float(1.5, "Take Profit (ATR Mult)", step=0.1, group=grp_risk, tooltip="Target profit distance.")
+max_bars_in_trade = input.int(10, "Time Stop (Max Bars in Trade)", group=grp_risk, tooltip="If the trade hasn't hit TP or SL in this many bars, close it. Capital rotation is key in HF scalping.")
+
+grp_webhook = "Webhook Payload"
+webhook_secret = input.string("your_secret_token", "Webhook Secret", group=grp_webhook)
+
+// =========================================================================
+// 2. CORE ALGORITHM (VWAP, RVOL, Volatility)
+// =========================================================================
+// VWAP (Volume Weighted Average Price)
+vwap_val = ta.vwap(hlc3)
+plot(vwap_val, color=color.new(color.yellow, 0), title="VWAP", linewidth=2)
+
+// Relative Volume (RVOL)
+avg_vol = ta.sma(volume, 20)
+rvol = volume / (avg_vol == 0 ? 1 : avg_vol)
+
+// Volatility Envelope (Bollinger Bands)
+[bb_middle, bb_upper, bb_lower] = ta.bb(close, bb_length, bb_mult)
+
+// Micro Momentum (Rate of Change)
+roc = ta.roc(close, 5)
+
+// Candlestick Pattern Recognition (Institutional Engulfing)
+bullish_engulfing = close > open and close[1] < open[1] and close > open[1] and open < close[1]
+bearish_engulfing = close < open and close[1] > open[1] and close < open[1] and open > close[1]
+
+// =========================================================================
+// 3. ENTRY CONDITIONS
+// =========================================================================
+// LONG: Price above VWAP, Volume spike detected, Volatility expansion (breaking BB upper OR engulfing), Positive momentum
+long_cond = (close > vwap_val or not use_vwap) and (rvol > rvol_threshold) and (close > bb_upper[1] or bullish_engulfing) and roc > 0
+
+// SHORT: Price below VWAP, Volume spike detected, Volatility expansion (breaking BB lower OR engulfing), Negative momentum
+short_cond = (close < vwap_val or not use_vwap) and (rvol > rvol_threshold) and (close < bb_lower[1] or bearish_engulfing) and roc < 0
+
+// Trade Duration Tracker (For Time-Based Exits)
+var int trade_bars = 0
+if strategy.position_size != 0
+    trade_bars += 1
+else
+    trade_bars := 0
+
+// =========================================================================
+// 4. EXECUTION & WEBHOOKS
+// =========================================================================
+atr = ta.atr(atr_length)
+
+// Long Entry
+if long_cond and strategy.position_size == 0
+    sl = close - (atr * sl_atr_mult)
+    tp = close + (atr * tp_atr_mult)
+    strategy.entry("Long", strategy.long)
+    strategy.exit("Exit Long", "Long", stop=sl, limit=tp)
+    
+    alert_msg = '{"secret": "' + webhook_secret + '", "symbol": "' + syminfo.ticker + '", "action": "BUY", "strategy": "Advanced_HF_Scalper", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + ', "stop_loss": ' + str.tostring(sl) + ', "take_profit": ' + str.tostring(tp) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// Short Entry
+if short_cond and strategy.position_size == 0
+    sl = close + (atr * sl_atr_mult)
+    tp = close - (atr * tp_atr_mult)
+    strategy.entry("Short", strategy.short)
+    strategy.exit("Exit Short", "Short", stop=sl, limit=tp)
+    
+    alert_msg = '{"secret": "' + webhook_secret + '", "symbol": "' + syminfo.ticker + '", "action": "SELL", "strategy": "Advanced_HF_Scalper", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + ', "stop_loss": ' + str.tostring(sl) + ', "take_profit": ' + str.tostring(tp) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// Time-Based Exit Logic (HF Scalping Protection)
+if strategy.position_size != 0 and trade_bars >= max_bars_in_trade
+    strategy.close_all(comment="Time Stop")
+    
+    // Send a CLOSE action to the webhook so your python backend knows to market-close the position immediately
+    alert_msg = '{"secret": "' + webhook_secret + '", "symbol": "' + syminfo.ticker + '", "action": "CLOSE", "strategy": "Advanced_HF_Scalper", "timeframe": "' + timeframe.period + '", "price": ' + str.tostring(close) + '}'
+    alert(alert_msg, alert.freq_once_per_bar_close)
+
+// Chart Visualizations
+plotshape(long_cond and strategy.position_size == 0, title="Long Signal", location=location.belowbar, color=color.green, style=shape.triangleup, size=size.small)
+plotshape(short_cond and strategy.position_size == 0, title="Short Signal", location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small)
